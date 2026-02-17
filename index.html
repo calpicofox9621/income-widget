@@ -1,101 +1,602 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Income Accumulator</title>
   <style>
-    body { font-family: ui-sans-serif, system-ui; margin: 0; padding: 16px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; }
-    .big { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; }
-    .row { display:flex; gap:12px; align-items: baseline; flex-wrap: wrap; color:#374151; }
-    .bar { height: 10px; background:#f3f4f6; border-radius:999px; overflow:hidden; margin-top: 12px; }
-    .fill { height: 100%; width: 0%; background:#111827; }
-    .small { font-size: 12px; color:#6b7280; margin-top: 8px; }
-    input { width: 100%; box-sizing: border-box; margin-top: 10px; padding: 8px; border-radius: 10px; border:1px solid #e5e7eb; }
+    :root{
+      --bg0:#070A13;
+      --bg1:#0B1024;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.09);
+      --border: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --muted2: rgba(255,255,255,.55);
+      --good: rgba(140,255,190,.95);
+      --good2: rgba(66,240,255,.95);
+      --warn: rgba(255,210,120,.95);
+      --shadow: 0 24px 80px rgba(0,0,0,.45);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 700px at 15% 10%, rgba(72,127,255,.30), transparent 55%),
+        radial-gradient(900px 650px at 85% 25%, rgba(115,255,209,.22), transparent 50%),
+        radial-gradient(700px 500px at 50% 95%, rgba(255,180,120,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      padding: 16px;
+      display: grid;
+      place-items: center;
+    }
+
+    .wrap{
+      width: min(720px, 100%);
+    }
+
+    .card{
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), rgba(255,255,255,.04));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(700px 280px at 20% 0%, rgba(72,127,255,.20), transparent 65%),
+        radial-gradient(680px 280px at 80% 0%, rgba(115,255,209,.18), transparent 65%),
+        radial-gradient(600px 240px at 50% 100%, rgba(255,180,120,.12), transparent 70%);
+      filter: blur(10px);
+      opacity: .9;
+      pointer-events:none;
+    }
+
+    .inner{
+      position: relative;
+      padding: 18px;
+    }
+
+    .top{
+      display:flex;
+      gap:12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--good), var(--good2));
+      box-shadow: 0 0 18px rgba(66,240,255,.35);
+    }
+
+    .chips{
+      display:flex;
+      gap:8px;
+      flex-wrap: wrap;
+    }
+
+    .chip{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      user-select: none;
+    }
+
+    .chip:hover{ transform: translateY(-1px); }
+    .chip.active{
+      color: rgba(255,255,255,.92);
+      border-color: rgba(140,255,190,.35);
+      background: linear-gradient(90deg, rgba(140,255,190,.12), rgba(66,240,255,.10));
+    }
+
+    .big{
+      font-size: clamp(34px, 6vw, 54px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin-top: 10px;
+      text-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+
+    .sub{
+      display:flex;
+      gap:10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+    }
+
+    .bar{
+      margin-top: 14px;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.10);
+      position: relative;
+    }
+
+    .fill{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--good), var(--good2));
+      box-shadow: 0 0 28px rgba(66,240,255,.28);
+      transition: width .25s ease;
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .box{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .k{ font-size: 12px; color: var(--muted2); }
+    .v{ font-size: 14px; margin-top: 6px; color: rgba(255,255,255,.90); font-weight: 650; }
+    .hint{ font-size: 12px; color: var(--muted2); margin-top: 8px; }
+
+    .footer{
+      margin-top: 14px;
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted2);
+      font-size: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.10);
+    }
+
+    .spark{
+      color: rgba(255,255,255,.92);
+    }
+
+    .mini{
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 520px){
+      .meta{ grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="big" id="earned">$0.00</div>
-    <div class="row">
-      <div id="status">Today</div>
-      <div>•</div>
-      <div id="rateLine">$0.00 / hour</div>
-      <div>•</div>
-      <div id="timeLine">0h 0m worked</div>
+  <div class="wrap">
+    <div class="card">
+      <div class="inner">
+        <div class="top">
+          <div class="title">
+            <span class="dot"></span>
+            <span>Income Accumulator</span>
+          </div>
+          <div class="chips" role="tablist" aria-label="Range">
+            <button class="chip active" id="tab-today"  data-mode="today"  role="tab">Today</button>
+            <button class="chip"        id="tab-month"  data-mode="month"  role="tab">This month</button>
+            <button class="chip"        id="tab-year"   data-mode="year"   role="tab">This year</button>
+          </div>
+        </div>
+
+        <div class="big" id="earned">$0.00</div>
+
+        <div class="sub">
+          <span class="pill" id="status">Counting in Pacific time</span>
+          <span class="pill mini" id="workLine">Work window: 9:00 AM → 10:00 PM</span>
+          <span class="pill mini" id="dayType">—</span>
+        </div>
+
+        <div class="bar" aria-label="Progress bar">
+          <div class="fill" id="fill"></div>
+        </div>
+
+        <div class="meta">
+          <div class="box">
+            <div class="k" id="rateLabel">Daily earning rate (workday)</div>
+            <div class="v mini" id="rateValue">—</div>
+            <div class="hint" id="rateHint">Salary averaged over weekdays, excluding observed US federal holidays.</div>
+          </div>
+          <div class="box">
+            <div class="k">Time worked in window</div>
+            <div class="v mini" id="timeValue">—</div>
+            <div class="hint mini" id="timeHint">—</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="mini" id="motivation">—</div>
+          <div class="mini" id="clock">—</div>
+        </div>
+      </div>
     </div>
-    <div class="bar"><div class="fill" id="fill"></div></div>
-    <div class="small">Edit settings below (stored locally in your browser).</div>
-
-    <label class="small">Hourly rate (USD)</label>
-    <input id="rate" type="number" step="0.01" />
-
-    <label class="small">Work start (HH:MM, 24h)</label>
-    <input id="start" placeholder="09:00" />
-
-    <label class="small">Work end (HH:MM, 24h)</label>
-    <input id="end" placeholder="17:00" />
   </div>
 
 <script>
-  const $ = (id) => document.getElementById(id);
+/**
+ * CONFIG (your values)
+ */
+const CONFIG = {
+  annualSalaryUSD: 112000,
+  timeZone: "America/Los_Angeles",
+  currency: "USD",
 
-  function load() {
-    $("rate").value = localStorage.getItem("rate") ?? "50";
-    $("start").value = localStorage.getItem("start") ?? "09:00";
-    $("end").value = localStorage.getItem("end") ?? "17:00";
-  }
+  // Work window in Pacific time (24h)
+  workStartHM: "09:00",
+  workEndHM:   "22:00",
 
-  function save() {
-    localStorage.setItem("rate", $("rate").value);
-    localStorage.setItem("start", $("start").value);
-    localStorage.setItem("end", $("end").value);
-  }
+  // "Working days" definition for salary averaging:
+  // Monday–Friday excluding observed US federal holidays.
+  excludeUSFederalHolidays: true
+};
 
-  function parseHM(s) {
-    const m = /^(\d{2}):(\d{2})$/.exec((s || "").trim());
-    if (!m) return null;
-    const hh = Number(m[1]), mm = Number(m[2]);
-    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
-    return hh * 60 + mm;
-  }
+const $ = (id) => document.getElementById(id);
 
-  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+let MODE = "today";
 
-  function tick() {
-    const rate = Number($("rate").value || 0); // $/hour
-    const startM = parseHM($("start").value);
-    const endM = parseHM($("end").value);
+/**
+ * Time helpers (Pacific time-safe)
+ * We create "now" in target TZ using formatToParts so it works even if your computer TZ differs.
+ */
+function nowPartsInTZ(tz){
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, year:"numeric", month:"2-digit", day:"2-digit",
+    hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false
+  });
+  const parts = dtf.formatToParts(new Date());
+  const get = (type) => Number(parts.find(p => p.type === type).value);
+  return {
+    year: get("year"),
+    month: get("month"),
+    day: get("day"),
+    hour: get("hour"),
+    minute: get("minute"),
+    second: get("second")
+  };
+}
 
-    if (!rate || startM === null || endM === null || endM <= startM) {
-      $("earned").textContent = "Fix settings";
-      $("rateLine").textContent = "";
-      $("timeLine").textContent = "";
-      $("fill").style.width = "0%";
-      return;
+function dateKey(y,m,d){ return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+
+function dayOfWeek(y,m,d){
+  // 0=Sun ... 6=Sat using UTC to avoid local-TZ skew
+  return new Date(Date.UTC(y, m-1, d)).getUTCDay();
+}
+
+function isWeekday(y,m,d){
+  const dow = dayOfWeek(y,m,d);
+  return dow >= 1 && dow <= 5;
+}
+
+function parseHM(s){
+  const m = /^(\d{2}):(\d{2})$/.exec((s||"").trim());
+  if(!m) return null;
+  const hh = Number(m[1]), mm = Number(m[2]);
+  if(hh<0||hh>23||mm<0||mm>59) return null;
+  return hh*60+mm;
+}
+
+function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+
+/**
+ * US Federal holidays (observed) — for salary averaging and “workday” detection
+ * Includes: New Year’s, MLK, Washington, Memorial, Juneteenth, Independence, Labor,
+ * Columbus/Indigenous Peoples, Veterans, Thanksgiving, Christmas.
+ */
+function nthWeekdayOfMonth(year, month1to12, weekday0Sun, n){
+  // returns {y,m,d}
+  let count = 0;
+  for(let d=1; d<=31; d++){
+    const dt = new Date(Date.UTC(year, month1to12-1, d));
+    if(dt.getUTCMonth() !== month1to12-1) break;
+    if(dt.getUTCDay() === weekday0Sun){
+      count++;
+      if(count === n) return {y:year, m:month1to12, d};
     }
+  }
+  return null;
+}
 
-    const now = new Date();
-    const nowM = now.getHours() * 60 + now.getMinutes() + now.getSeconds()/60;
+function lastWeekdayOfMonth(year, month1to12, weekday0Sun){
+  let last = null;
+  for(let d=1; d<=31; d++){
+    const dt = new Date(Date.UTC(year, month1to12-1, d));
+    if(dt.getUTCMonth() !== month1to12-1) break;
+    if(dt.getUTCDay() === weekday0Sun) last = {y:year, m:month1to12, d};
+  }
+  return last;
+}
 
-    const shift = endM - startM;
-    const worked = clamp(nowM - startM, 0, shift);
+function observedIfWeekend(y,m,d){
+  // If holiday falls on Saturday -> observed Friday; Sunday -> observed Monday; else same day
+  const dow = dayOfWeek(y,m,d);
+  if(dow === 6){ // Sat
+    const prev = new Date(Date.UTC(y, m-1, d-1));
+    return {y: prev.getUTCFullYear(), m: prev.getUTCMonth()+1, d: prev.getUTCDate()};
+  }
+  if(dow === 0){ // Sun
+    const next = new Date(Date.UTC(y, m-1, d+1));
+    return {y: next.getUTCFullYear(), m: next.getUTCMonth()+1, d: next.getUTCDate()};
+  }
+  return {y,m,d};
+}
 
-    const earned = (worked / 60) * rate;
-    const pct = (worked / shift) * 100;
+function usFederalObservedHolidaysSet(year){
+  const holidays = [];
 
-    $("earned").textContent = earned.toLocaleString(undefined, { style: "currency", currency: "USD" });
-    $("rateLine").textContent = `${rate.toLocaleString(undefined,{maximumFractionDigits:2})} / hour`;
-    const h = Math.floor(worked / 60);
-    const m = Math.floor(worked % 60);
-    $("timeLine").textContent = `${h}h ${m}m worked`;
-    $("fill").style.width = `${pct.toFixed(1)}%`;
+  // Fixed-date
+  holidays.push(observedIfWeekend(year, 1, 1));   // New Year's Day
+  holidays.push(observedIfWeekend(year, 6, 19));  // Juneteenth
+  holidays.push(observedIfWeekend(year, 7, 4));   // Independence Day
+  holidays.push(observedIfWeekend(year, 11, 11)); // Veterans Day
+  holidays.push(observedIfWeekend(year, 12, 25)); // Christmas Day
+
+  // Floating
+  holidays.push(nthWeekdayOfMonth(year, 1, 1, 3));  // MLK Day: 3rd Mon Jan
+  holidays.push(nthWeekdayOfMonth(year, 2, 1, 3));  // Washington's Birthday: 3rd Mon Feb
+  holidays.push(lastWeekdayOfMonth(year, 5, 1));    // Memorial Day: last Mon May
+  holidays.push(nthWeekdayOfMonth(year, 9, 1, 1));  // Labor Day: 1st Mon Sep
+  holidays.push(nthWeekdayOfMonth(year, 10, 1, 2)); // Columbus/Indigenous: 2nd Mon Oct
+  holidays.push(nthWeekdayOfMonth(year, 11, 4, 4)); // Thanksgiving: 4th Thu Nov
+
+  const set = new Set();
+  for(const h of holidays){
+    if(!h) continue;
+    set.add(dateKey(h.y,h.m,h.d));
+  }
+  return set;
+}
+
+function isWorkday(y,m,d, holidaySet){
+  if(!isWeekday(y,m,d)) return false;
+  if(CONFIG.excludeUSFederalHolidays && holidaySet.has(dateKey(y,m,d))) return false;
+  return true;
+}
+
+/**
+ * Count workdays in a year (for salary averaging)
+ */
+function countWorkdaysInYear(year){
+  const holidaySet = usFederalObservedHolidaysSet(year);
+  let count = 0;
+  for(let m=1; m<=12; m++){
+    for(let d=1; d<=31; d++){
+      const dt = new Date(Date.UTC(year, m-1, d));
+      if(dt.getUTCMonth() !== m-1) break;
+      if(isWorkday(year,m,d, holidaySet)) count++;
+    }
+  }
+  return { count, holidaySet };
+}
+
+/**
+ * Earnings model:
+ * - Annual salary is divided by number of workdays in the year (Mon–Fri excluding holidays)
+ * - For any workday, earnings accrue linearly only during the work window (9:00–22:00)
+ * - Non-workdays accrue $0
+ */
+function formatMoney(x){
+  return x.toLocaleString(undefined, { style:"currency", currency: CONFIG.currency });
+}
+
+function minutesWorkedInWindow(nowMins, startMins, endMins){
+  const shift = endMins - startMins;
+  const worked = clamp(nowMins - startMins, 0, shift);
+  return { worked, shift };
+}
+
+function sumEarnedForRange(rangeStartYMD, rangeEndYMD, nowP, startMins, endMins, dailyPay, holidaySet){
+  // Sums earnings from rangeStart (inclusive) to rangeEnd (inclusive),
+  // with rangeEnd assumed to be "today", so we prorate the last day by current time.
+  // Non-workdays contribute 0.
+  let total = 0;
+  let workdaysCounted = 0;
+  let workedMinsToday = 0;
+  let shiftMins = endMins - startMins;
+
+  const start = new Date(Date.UTC(rangeStartYMD.y, rangeStartYMD.m-1, rangeStartYMD.d));
+  const end   = new Date(Date.UTC(rangeEndYMD.y,   rangeEndYMD.m-1,   rangeEndYMD.d));
+
+  for(let dt = start; dt <= end; dt = new Date(dt.getTime() + 86400000)){
+    const y = dt.getUTCFullYear(), m = dt.getUTCMonth()+1, d = dt.getUTCDate();
+    if(!isWorkday(y,m,d, holidaySet)) continue;
+
+    workdaysCounted++;
+    const isToday = (y===nowP.year && m===nowP.month && d===nowP.day);
+
+    if(isToday){
+      const nowMins = nowP.hour*60 + nowP.minute + nowP.second/60;
+      const { worked, shift } = minutesWorkedInWindow(nowMins, startMins, endMins);
+      workedMinsToday = worked;
+      shiftMins = shift;
+      total += dailyPay * (worked / shift);
+    } else {
+      total += dailyPay;
+    }
   }
 
-  ["rate","start","end"].forEach(id => $(id).addEventListener("input", () => { save(); tick(); }));
-  load(); tick();
-  setInterval(tick, 250); // smooth-ish
+  return { total, workdaysCounted, workedMinsToday, shiftMins };
+}
+
+function ymdStartOfMonth(y,m){ return {y, m, d:1}; }
+function ymdStartOfYear(y){ return {y, m:1, d:1}; }
+
+function tick(){
+  // current time in Pacific TZ
+  const nowP = nowPartsInTZ(CONFIG.timeZone);
+
+  const startMins = parseHM(CONFIG.workStartHM);
+  const endMins   = parseHM(CONFIG.workEndHM);
+  if(startMins === null || endMins === null || endMins <= startMins){
+    $("earned").textContent = "Fix time window";
+    return;
+  }
+
+  // salary averaging for current year
+  const { count: workdaysInYear, holidaySet } = countWorkdaysInYear(nowP.year);
+  const dailyPay = CONFIG.annualSalaryUSD / workdaysInYear;
+
+  // determine today work status + today progress
+  const todayIsWorkday = isWorkday(nowP.year, nowP.month, nowP.day, holidaySet);
+  const nowMins = nowP.hour*60 + nowP.minute + nowP.second/60;
+  const { worked: workedTodayMins, shift: shiftMins } = minutesWorkedInWindow(nowMins, startMins, endMins);
+
+  const todayEarned = todayIsWorkday ? (dailyPay * (workedTodayMins / shiftMins)) : 0;
+  const todayPct = todayIsWorkday ? (workedTodayMins / shiftMins) : 0;
+
+  // month / year earned so far (prorating today)
+  const monthStart = ymdStartOfMonth(nowP.year, nowP.month);
+  const yearStart  = ymdStartOfYear(nowP.year);
+  const todayYMD   = { y: nowP.year, m: nowP.month, d: nowP.day };
+
+  const monthAgg = sumEarnedForRange(monthStart, todayYMD, nowP, startMins, endMins, dailyPay, holidaySet);
+  const yearAgg  = sumEarnedForRange(yearStart,  todayYMD, nowP, startMins, endMins, dailyPay, holidaySet);
+
+  // decide display based on MODE
+  let earned = 0;
+  let pct = 0;
+  let status = "";
+  let timeValue = "";
+  let timeHint = "";
+  let dayType = "";
+
+  if(!todayIsWorkday){
+    dayType = "Non-workday (no salary accrual)";
+  } else {
+    dayType = "Workday ✅";
+  }
+
+  if(MODE === "today"){
+    earned = todayEarned;
+    pct = todayPct;
+    status = "Earning right now";
+    timeValue = todayIsWorkday ? `${Math.floor(workedTodayMins/60)}h ${Math.floor(workedTodayMins%60)}m` : "0h 0m";
+    const remaining = todayIsWorkday ? (shiftMins - workedTodayMins) : shiftMins;
+    timeHint = todayIsWorkday
+      ? `+${formatMoney(dailyPay - todayEarned)} left in today’s window`
+      : "Enjoy the break ✨";
+  } else if(MODE === "month"){
+    earned = monthAgg.total;
+    // progress = workdays elapsed / workdays in month (approx), using counted workdays / total workdays in month
+    const monthWorkdaysTotal = (() => {
+      let c=0;
+      for(let d=1; d<=31; d++){
+        const dt = new Date(Date.UTC(nowP.year, nowP.month-1, d));
+        if(dt.getUTCMonth() !== nowP.month-1) break;
+        if(isWorkday(nowP.year, nowP.month, d, holidaySet)) c++;
+      }
+      return c;
+    })();
+    pct = monthWorkdaysTotal ? (monthAgg.workdaysCounted / monthWorkdaysTotal) : 0;
+    status = "This month so far";
+    timeValue = `${monthAgg.workdaysCounted} workdays elapsed`;
+    const remainingWorkdays = Math.max(0, monthWorkdaysTotal - monthAgg.workdaysCounted);
+    timeHint = `~${remainingWorkdays} workdays left this month`;
+  } else { // year
+    earned = yearAgg.total;
+    pct = workdaysInYear ? (yearAgg.workdaysCounted / workdaysInYear) : 0;
+    status = "This year so far";
+    timeValue = `${yearAgg.workdaysCounted} / ${workdaysInYear} workdays`;
+    timeHint = `Annual salary: ${formatMoney(CONFIG.annualSalaryUSD)} • Daily: ${formatMoney(dailyPay)}`;
+  }
+
+  // UI updates
+  $("earned").textContent = formatMoney(earned);
+  $("fill").style.width = `${(pct*100).toFixed(1)}%`;
+  $("status").textContent = status;
+  $("dayType").textContent = dayType;
+
+  $("rateValue").textContent = `${formatMoney(dailyPay)} per workday  •  ${formatMoney(dailyPay/(shiftMins/60))}/hour (within window)`;
+
+  $("timeValue").textContent = timeValue;
+  $("timeHint").textContent = timeHint;
+
+  // Motivation line (a bit cheesy on purpose)
+  const sparks = [
+    "Tiny steps stack into big wins.",
+    "Keep going — future you is already grateful.",
+    "One focused hour at a time.",
+    "Show up. That’s the whole cheat code.",
+    "Momentum > motivation. You’ve got momentum."
+  ];
+  const spark = sparks[(nowP.minute + nowP.hour) % sparks.length];
+
+  let extra = "";
+  if(MODE === "today" && todayIsWorkday){
+    const dollarsPerMinute = dailyPay / shiftMins;
+    extra = ` • +${formatMoney(dollarsPerMinute)}/min`;
+  } else if(MODE === "month"){
+    extra = ` • Daily avg: ${formatMoney(dailyPay)}`;
+  } else if(MODE === "year"){
+    extra = ` • Workdays/year: ${workdaysInYear}`;
+  }
+
+  $("motivation").innerHTML = `<span class="spark">✦</span> ${spark}${extra}`;
+
+  // clock
+  const hh = String(((nowP.hour + 11) % 12) + 1).padStart(2,"0");
+  const ampm = nowP.hour >= 12 ? "PM" : "AM";
+  const mm = String(nowP.minute).padStart(2,"0");
+  const ss = String(nowP.second).padStart(2,"0");
+  $("clock").textContent = `${hh}:${mm}:${ss} ${ampm} PT`;
+}
+
+function setMode(mode){
+  MODE = mode;
+  document.querySelectorAll(".chip").forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
+  tick();
+}
+
+// tabs
+document.querySelectorAll(".chip").forEach(btn => {
+  btn.addEventListener("click", () => setMode(btn.dataset.mode));
+});
+
+// initial
+tick();
+setInterval(tick, 250);
 </script>
 </body>
 </html>
